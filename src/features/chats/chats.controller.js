@@ -32,15 +32,16 @@ export const addMessage = async (req, res) => {
         console.log("result: ", result);
 
         const tutor = await tutorModel.findOne({ roomID: room });
-        if (tutor) {
-            const message = new Message({ room, sender, comment, prediction });
-            await message.save();
-
-            tutor.messages.push(message._id)
-            await tutor.save();
-        } else {
-            res.status(200).json("Room does not exist");
+        if (!tutor) {
+            return res.status(200).json({ error: "Room does not exist" }); // Return here to stop execution
         }
+
+        const message = new Message({ room, sender, comment, prediction });
+        await message.save();
+
+        tutor.messages.push(message._id);
+        await tutor.save();
+
         res.status(201).json(message);
     } catch (err) {
         res.status(500).json({ error: err.message });
