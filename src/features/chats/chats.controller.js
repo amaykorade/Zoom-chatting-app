@@ -29,7 +29,7 @@ export const addMessage = async (req, res) => {
         const comment = result.results[0].comment;
         const prediction = result.results[0].prediction;
 
-        console.log("result: ", result);
+        // console.log("result: ", result);
 
         const tutor = await tutorModel.findOne({ roomID: room });
         if (!tutor) {
