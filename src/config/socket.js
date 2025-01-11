@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { Message } from "../features/chats/chats.model.js";
 import { tutorModel } from "../features/tutor/tutor.model.js";
 
@@ -5,28 +7,29 @@ const handleSocketEvents = (io) => {
     io.on("connection", (socket) => {
         console.log("New client connected:", socket.id);
 
+        socket.on("test_event", (data) => {
+            console.log("Received from client:", data);
+            socket.emit("test_response", { message: "Hello from server!" });
+        });
+
         // Handle joining a room
-        socket.on("join_room", async ({ roomID, userName }) => {
+        socket.on("join_room", async ({ roomID, userName }, callback) => {
             try {
                 const roomExists = await checkRoomExists(roomID);
 
                 if (!roomExists) {
-                    socket.emit("room_error", { error: "Room does not exist" });
+                    callback({ error: "Room does not exist" });
                     return;
                 }
 
                 socket.join(roomID);
-                console.log(`${userName} joined room: ${roomID}`);
+                console.log(`${userName}, joined room: ${roomID}`);
 
-
-                // Fetch previous messages for the room
                 const roomMessages = await fetchRoomMessages(roomID);
-
-                // Send previous messages to the user
-                socket.emit("room_messages", roomMessages);
+                callback({ messages: roomMessages });
             } catch (err) {
                 console.error("Error during room joining:", err);
-                socket.emit("room_error", { error: "An error occurred while joining the room" });
+                callback({ error: "An error occurred while joining the room" });
             }
         });
 
@@ -41,6 +44,8 @@ const handleSocketEvents = (io) => {
                     sender,
                     chat,
                 });
+
+                console.log("socket Response :", response.data);
 
                 // Broadcast the saved message to all users in the room
                 io.to(room).emit("receive_message", response.data);

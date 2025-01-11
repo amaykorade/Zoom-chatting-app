@@ -16,6 +16,8 @@ export const lstm = async (messages) => {
             }
         );
 
+        console.log("Response: ", response.data);
+
         return response.data;
     } catch (error) {
         console.error('Error in lstm function:', error.message);
